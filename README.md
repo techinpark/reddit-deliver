@@ -1,5 +1,7 @@
 # 🤖 reddit-deliver
 
+**[English](README.md)** | **[한국어](README.ko.md)**
+
 > Reddit post monitoring service with webhook delivery and multi-language translation support
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
