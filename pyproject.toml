@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reddit-deliver"
+version = "0.1.0"
+description = "Reddit monitoring and webhook delivery system with translation"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    {name = "Reddit Deliver Team"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "praw>=7.7.0",
+    "deepl>=1.16.0",
+    "requests>=2.31.0",
+    "sqlalchemy>=2.0.0",
+    "apscheduler>=3.10.0",
+    "pydantic>=2.5.0",
+    "pyyaml>=6.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-mock>=3.12.0",
+    "responses>=0.24.0",
+    "freezegun>=1.4.0",
+]
+
+[project.scripts]
+reddit-deliver = "cli.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml", "*.yml"]

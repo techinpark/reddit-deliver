@@ -1,0 +1,14 @@
+# Core dependencies for Reddit Monitoring and Webhook Delivery System
+praw>=7.7.0
+deepl>=1.16.0
+requests>=2.31.0
+sqlalchemy>=2.0.0
+apscheduler>=3.10.0
+pydantic>=2.5.0
+pyyaml>=6.0.0
+
+# Development dependencies (optional)
+# pytest>=7.4.0
+# pytest-mock>=3.12.0
+# responses>=0.24.0
+# freezegun>=1.4.0
