@@ -70,14 +70,20 @@ class RedditClient:
             subreddit = self.reddit.subreddit(subreddit_name)
             posts = []
 
-            logger.debug(f"Fetching new posts from r/{subreddit_name} (limit={limit})")
+            if since:
+                logger.debug(f"Fetching posts from r/{subreddit_name} since {since} (limit={limit})")
+            else:
+                logger.debug(f"Fetching new posts from r/{subreddit_name} (limit={limit})")
 
+            total_checked = 0
             for submission in subreddit.new(limit=limit):
+                total_checked += 1
                 # Convert timestamp
                 created_utc = datetime.utcfromtimestamp(submission.created_utc)
 
                 # Filter by timestamp if provided
                 if since and created_utc <= since:
+                    logger.debug(f"Skipping post {submission.id} (created {created_utc}, cutoff {since})")
                     continue
 
                 post_data = {
@@ -90,8 +96,9 @@ class RedditClient:
                 }
 
                 posts.append(post_data)
+                logger.debug(f"Found new post: {submission.id} - {submission.title[:50]}")
 
-            logger.info(f"Fetched {len(posts)} new posts from r/{subreddit_name}")
+            logger.info(f"Fetched {len(posts)} new posts from r/{subreddit_name} (checked {total_checked} total)")
             return posts
 
         except Exception as e:

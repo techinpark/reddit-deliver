@@ -23,15 +23,17 @@ def handle_config_init(args):
             print_error("Configuration already exists. Use 'config set' to modify.", args.json, exit_code=1)
 
         # Create default config
-        config = UserConfig(language='en', poll_interval_minutes=5)
+        config = UserConfig(language='en', translator_service='deepl', poll_interval_minutes=5)
         session.add(config)
         session.commit()
 
         print_success("Configuration initialized with defaults", args.json, data={
             'language': 'en',
+            'translator_service': 'deepl',
             'poll_interval': 5
         })
         print_info("language: en")
+        print_info("translator_service: deepl")
         print_info("poll_interval: 5 minutes")
 
     finally:
@@ -51,6 +53,12 @@ def handle_config_set(args):
 
         if key == 'language':
             config.language = value
+        elif key == 'translator_service':
+            from services.translator_factory import TranslatorFactory
+            if not TranslatorFactory.validate_service(value):
+                valid_services = ', '.join(TranslatorFactory.get_available_services())
+                print_error(f"Invalid translator service: {value}. Valid services: {valid_services}", args.json, exit_code=2)
+            config.translator_service = value
         elif key == 'poll_interval':
             try:
                 config.poll_interval_minutes = int(value)
@@ -80,6 +88,7 @@ def handle_config_get(args):
         if key == 'all':
             data = {
                 'language': config.language,
+                'translator_service': config.translator_service,
                 'poll_interval': config.poll_interval_minutes
             }
             if args.json:
@@ -87,6 +96,7 @@ def handle_config_get(args):
                 print(json.dumps(data, indent=2))
             else:
                 print(f"language: {config.language}")
+                print(f"translator_service: {config.translator_service}")
                 print(f"poll_interval: {config.poll_interval_minutes}")
         elif key == 'language':
             if args.json:
@@ -94,6 +104,12 @@ def handle_config_get(args):
                 print(json.dumps({'language': config.language}))
             else:
                 print(config.language)
+        elif key == 'translator_service':
+            if args.json:
+                import json
+                print(json.dumps({'translator_service': config.translator_service}))
+            else:
+                print(config.translator_service)
         elif key == 'poll_interval':
             if args.json:
                 import json

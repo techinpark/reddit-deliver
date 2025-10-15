@@ -40,11 +40,12 @@ def run_migration(db_path: str = "data/reddit-deliver.db"):
         if config_count == 0:
             default_config = UserConfig(
                 language='en',
+                translator_service='deepl',
                 poll_interval_minutes=5
             )
             session.add(default_config)
             session.commit()
-            logger.info("✓ Default configuration created (language=en, poll_interval=5)")
+            logger.info("✓ Default configuration created (language=en, translator=deepl, poll_interval=5)")
         else:
             logger.info(f"Configuration already exists ({config_count} row(s))")
     finally:

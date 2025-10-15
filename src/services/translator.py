@@ -8,11 +8,12 @@ import os
 import deepl
 from typing import Optional, Tuple
 from lib.logger import get_logger
+from services.base_translator import BaseTranslator
 
-logger = get_logger("translator")
+logger = get_logger("deepl_translator")
 
 
-class Translator:
+class Translator(BaseTranslator):
     """
     Translation service using DeepL API.
 

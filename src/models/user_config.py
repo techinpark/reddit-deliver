@@ -11,13 +11,14 @@ class UserConfig(Base):
     """
     Global user configuration settings.
 
-    Stores user preferences for translation language and polling interval.
+    Stores user preferences for translation language, translator service, and polling interval.
     Should be a singleton (only one row in the table).
     """
     __tablename__ = 'user_config'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     language = Column(String(10), nullable=False, default='en')  # ISO 639-1 code
+    translator_service = Column(String(20), nullable=False, default='deepl')  # 'deepl' or 'gemini'
     poll_interval_minutes = Column(Integer, nullable=False, default=5)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)

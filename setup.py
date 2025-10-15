@@ -12,6 +12,7 @@ setup(
     install_requires=[
         "praw>=7.7.0",
         "deepl>=1.16.0",
+        "google-genai>=1.0.0",
         "requests>=2.31.0",
         "sqlalchemy>=2.0.0",
         "apscheduler>=3.10.0",

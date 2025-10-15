@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  reddit-deliver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: reddit-deliver
+    restart: unless-stopped
+
+    # Environment variables - Load from .env file
+    env_file:
+      - .env
+
+    # Volumes for persistent data
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+
+    # Health check to ensure service is running
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

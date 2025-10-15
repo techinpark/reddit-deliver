@@ -54,7 +54,8 @@ def main():
     monitor_subparsers = monitor_parser.add_subparsers(dest='monitor_command')
     monitor_start_parser = monitor_subparsers.add_parser('start', help='Start monitoring')
     monitor_start_parser.add_argument('--once', action='store_true', help='Run once and exit')
-    monitor_start_parser.add_argument('--daemon', action='store_true', help='Run as daemon')
+    monitor_start_parser.add_argument('--daemon', action='store_true', help='Run in daemon mode (continuous monitoring)')
+    monitor_start_parser.add_argument('--interval', type=int, default=300, help='Check interval in seconds (default: 300)')
 
     args = parser.parse_args()
 

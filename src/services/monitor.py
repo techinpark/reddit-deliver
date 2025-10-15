@@ -4,13 +4,14 @@ Monitoring orchestrator service.
 Coordinates Reddit polling, translation, and webhook delivery.
 """
 
+import time
 from datetime import datetime
 from typing import Optional
 from sqlalchemy.orm import Session
 
 from models import Subreddit, Post, Translation, UserConfig, WebhookConfig
 from services.reddit_client import RedditClient
-from services.translator import Translator
+from services.translator_factory import TranslatorFactory
 from services.webhook_sender import WebhookSender
 from storage.database import get_session
 from lib.logger import get_logger
@@ -25,11 +26,18 @@ class Monitor:
     Polls subreddits, translates content, and delivers via webhooks.
     """
 
-    def __init__(self):
-        """Initialize monitor with service dependencies."""
+    def __init__(self, translator_service: Optional[str] = None):
+        """
+        Initialize monitor with service dependencies.
+
+        Args:
+            translator_service: Override translator service (e.g., 'deepl', 'gemini').
+                              If None, uses value from UserConfig.
+        """
         self.reddit_client = RedditClient()
-        self.translator = Translator()
         self.webhook_sender = WebhookSender()
+        self._translator_service = translator_service
+        self._translator = None
         logger.info("Monitor initialized")
 
     def check_subreddit(self, subreddit: Subreddit, session: Session) -> int:
@@ -79,6 +87,31 @@ class Monitor:
             session.rollback()
             return 0
 
+    def _get_translator(self, session: Session):
+        """
+        Get or create translator instance based on configuration.
+
+        Args:
+            session: Database session
+
+        Returns:
+            Translator instance
+        """
+        if self._translator is None:
+            # Determine which translator service to use
+            service = self._translator_service
+            if not service:
+                config = session.query(UserConfig).first()
+                if config:
+                    service = config.translator_service
+                else:
+                    service = 'deepl'  # Default fallback
+
+            logger.info(f"Creating {service} translator")
+            self._translator = TranslatorFactory.create_translator(service)
+
+        return self._translator
+
     def _process_post(self, post_data: dict, subreddit: Subreddit, session: Session) -> bool:
         """
         Process a single post: translate and send webhook.
@@ -114,9 +147,10 @@ class Monitor:
 
             target_lang = config.language
 
-            # Translate post
+            # Get translator and translate post
+            translator = self._get_translator(session)
             logger.debug(f"Translating post {post.id} to {target_lang}")
-            translated_title, translated_content, source_lang = self.translator.translate_post(
+            translated_title, translated_content, source_lang = translator.translate_post(
                 post.title,
                 post.content,
                 target_lang
@@ -243,3 +277,33 @@ class Monitor:
         stats = self.check_all_enabled()
         logger.info("Monitoring cycle complete")
         return stats
+
+    def run_daemon(self, interval: int = 300):
+        """
+        Run monitoring in daemon mode (continuous loop).
+
+        Checks subreddits at regular intervals until interrupted.
+
+        Args:
+            interval: Check interval in seconds (default: 300 = 5 minutes)
+        """
+        logger.info(f"Starting daemon mode with {interval}s interval...")
+
+        try:
+            while True:
+                try:
+                    logger.info("Running monitoring cycle...")
+                    stats = self.check_all_enabled()
+                    logger.info(
+                        f"Cycle complete: {stats['total_posts']} posts, "
+                        f"{stats['errors']} errors"
+                    )
+                except Exception as e:
+                    logger.error(f"Error in monitoring cycle: {e}")
+
+                logger.info(f"Sleeping for {interval} seconds...")
+                time.sleep(interval)
+
+        except KeyboardInterrupt:
+            logger.info("Daemon stopped by user")
+            raise
