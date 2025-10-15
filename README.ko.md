@@ -16,7 +16,7 @@
 ## ✨ 주요 기능
 
 - 🔍 **스마트 모니터링** - 좋아하는 서브레딧의 새 게시물을 자동으로 추적
-- 🌍 **다국어 번역** - DeepL API를 사용한 게시물 번역 (30개 이상 언어 지원)
+- 🌍 **다국어 번역** - DeepL 또는 Google Gemini API를 사용한 게시물 번역 (30개 이상 언어 지원)
 - 📢 **웹훅 알림** - Discord, Slack 또는 커스텀 웹훅으로 전달
 - 🚫 **중복 감지** - 동일한 게시물을 두 번 받지 않음
 - 💾 **영구 저장소** - 설정 및 이력 관리를 위한 SQLite 데이터베이스
@@ -103,12 +103,22 @@ python src/storage/migrations/init_schema.py
 4. "Create app" 클릭
 5. **client ID** (앱 이름 아래)와 **secret** 복사
 
-#### DeepL API
+#### 번역 API (하나를 선택)
+
+**옵션 A: DeepL API (최고 품질을 위해 권장)**
 1. [https://www.deepl.com/pro-api](https://www.deepl.com/pro-api)로 이동
 2. **무료 계정** 가입 (월 50만 글자 제공)
 3. 이메일 인증 및 결제 수단 추가 (무료 플랜은 요금 부과되지 않음)
 4. [계정 설정](https://www.deepl.com/account/summary)으로 이동
 5. **API 키** 복사
+
+**옵션 B: Google Gemini API (무료 & 간편)**
+1. [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)로 이동
+2. Google 계정으로 로그인
+3. **API 키 생성** 클릭
+4. Google Cloud 프로젝트 선택 또는 새로 생성
+5. **API 키** 복사
+6. 번역 서비스 설정: `reddit-deliver config set translator_service gemini`
 
 #### Discord 웹훅
 1. Discord를 열고 서버로 이동
@@ -135,8 +145,12 @@ REDDIT_CLIENT_ID=여기에_클라이언트_ID_입력
 REDDIT_CLIENT_SECRET=여기에_클라이언트_시크릿_입력
 REDDIT_USER_AGENT=reddit-deliver/0.1.0
 
-# DeepL 번역 API
+# 번역 API - 다음 중 하나를 선택:
+# 옵션 A: DeepL API (최고 품질을 위해 권장)
 DEEPL_API_KEY=여기에_DeepL_API_키_입력
+
+# 옵션 B: Google Gemini API (무료 & 간편한 대안)
+GEMINI_API_KEY=여기에_Gemini_API_키_입력
 
 # Discord 웹훅 (필수)
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/여기에_웹훅_URL_입력
@@ -159,6 +173,9 @@ reddit-deliver config init
 
 # 번역 언어 설정 (예: ko, ja, de, fr, es, it, pt, ru, zh)
 reddit-deliver config set language ko
+
+# (선택 사항) 번역 서비스 설정: 'deepl' (기본값) 또는 'gemini'
+reddit-deliver config set translator_service gemini
 
 # 모니터링할 서브레딧 추가
 reddit-deliver subreddit add ClaudeAI
@@ -345,7 +362,8 @@ crontab -e
 | `REDDIT_CLIENT_ID` | ✅ 예 | - | Reddit API 클라이언트 ID |
 | `REDDIT_CLIENT_SECRET` | ✅ 예 | - | Reddit API 클라이언트 시크릿 |
 | `REDDIT_USER_AGENT` | ✅ 예 | - | Reddit API 사용자 에이전트 (형식: 앱이름/버전) |
-| `DEEPL_API_KEY` | ✅ 예 | - | DeepL 번역 API 키 |
+| `DEEPL_API_KEY` | ⚠️ 둘 중 하나 | - | DeepL 번역 API 키 (DeepL 사용 시) |
+| `GEMINI_API_KEY` | ⚠️ 또는 | - | Google Gemini API 키 (Gemini 사용 시) |
 | `DISCORD_WEBHOOK_URL` | ✅ 예 | - | 알림을 위한 Discord 웹훅 URL |
 | `SLACK_WEBHOOK_URL` | ❌ 아니오 | - | Slack 웹훅 URL (선택 사항) |
 | `MONITOR_INTERVAL` | ❌ 아니오 | 300 | 모니터링 간격(초) |
@@ -353,7 +371,24 @@ crontab -e
 | `POST_LIMIT` | ❌ 아니오 | 10 | 확인당 가져올 게시물 수 |
 | `LOG_LEVEL` | ❌ 아니오 | INFO | 로깅 레벨 (DEBUG, INFO, WARNING, ERROR) |
 
-### 지원 언어 (DeepL)
+### 지원 번역 서비스
+
+reddit-deliver는 두 가지 번역 제공업체를 지원합니다:
+
+#### DeepL (기본값)
+- ✅ **최고 품질** 번역
+- ✅ 무료 플랜: 월 50만 글자
+- ✅ 30개 이상 언어 지원
+- 💡 프로덕션 환경에 권장
+
+#### Google Gemini
+- ✅ 넉넉한 무료 한도
+- ✅ Google 계정으로 간편한 설정
+- ✅ AI 기반 빠른 번역
+- ✅ 100개 이상 언어 지원
+- 💡 개인 사용이나 테스트에 적합
+
+### 지원 언어
 
 | 코드 | 언어 | 코드 | 언어 |
 |------|----------|------|----------|
@@ -364,7 +399,8 @@ crontab -e
 | `pt` | 포르투갈어 | `ru` | 러시아어 |
 | `nl` | 네덜란드어 | `pl` | 폴란드어 |
 
-[전체 목록](https://www.deepl.com/docs-api/translate-text/)을 확인하세요.
+**DeepL**: [전체 목록 보기](https://www.deepl.com/docs-api/translate-text/)
+**Gemini**: 자동 감지 기능으로 100개 이상 언어 지원
 
 ---
 
@@ -610,6 +646,7 @@ SOFTWARE.
 
 - **[PRAW](https://praw.readthedocs.io/)** - Python Reddit API Wrapper
 - **[DeepL](https://www.deepl.com/)** - 고품질 번역 API
+- **[Google Gemini](https://ai.google.dev/)** - AI 기반 번역
 - **[SQLAlchemy](https://www.sqlalchemy.org/)** - Python SQL 툴킷
 - **[Click](https://click.palletsprojects.com/)** - CLI 프레임워크
 - **[Docker](https://www.docker.com/)** - 컨테이너화 플랫폼

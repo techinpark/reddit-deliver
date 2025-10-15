@@ -16,7 +16,7 @@ Stay updated with your favorite subreddits! **reddit-deliver** automatically mon
 ## ✨ Features
 
 - 🔍 **Smart Monitoring** - Automatically track new posts from your favorite subreddits
-- 🌍 **Multi-Language Translation** - Translate posts using DeepL API (supports 30+ languages)
+- 🌍 **Multi-Language Translation** - Translate posts using DeepL or Google Gemini API (supports 30+ languages)
 - 📢 **Webhook Notifications** - Deliver to Discord, Slack, or custom webhooks
 - 🚫 **Duplicate Detection** - Never receive the same post twice
 - 💾 **Persistent Storage** - SQLite database for configuration and history
@@ -103,12 +103,22 @@ python src/storage/migrations/init_schema.py
 4. Click "Create app"
 5. Copy the **client ID** (under your app name) and **secret**
 
-#### DeepL API
+#### Translation API (Choose One)
+
+**Option A: DeepL API (Recommended for best quality)**
 1. Go to [https://www.deepl.com/pro-api](https://www.deepl.com/pro-api)
 2. Sign up for a **free account** (500,000 characters/month)
 3. Verify your email and add payment method (free tier won't be charged)
 4. Go to your [Account Settings](https://www.deepl.com/account/summary)
 5. Copy your **API Key**
+
+**Option B: Google Gemini API (Free & Easy)**
+1. Go to [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click **Create API Key**
+4. Select a Google Cloud project or create a new one
+5. Copy your **API Key**
+6. Set translator service: `reddit-deliver config set translator_service gemini`
 
 #### Discord Webhook
 1. Open Discord and go to your server
@@ -135,8 +145,12 @@ REDDIT_CLIENT_ID=your_client_id_here
 REDDIT_CLIENT_SECRET=your_client_secret_here
 REDDIT_USER_AGENT=reddit-deliver/0.1.0
 
-# DeepL Translation API
+# Translation API - Choose ONE of the following:
+# Option A: DeepL API (recommended for best quality)
 DEEPL_API_KEY=your_deepl_api_key_here
+
+# Option B: Google Gemini API (free & easy alternative)
+GEMINI_API_KEY=your_gemini_api_key_here
 
 # Discord Webhook (required)
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url
@@ -159,6 +173,9 @@ reddit-deliver config init
 
 # Set translation language (examples: ko, ja, de, fr, es, it, pt, ru, zh)
 reddit-deliver config set language ko
+
+# (Optional) Set translator service: 'deepl' (default) or 'gemini'
+reddit-deliver config set translator_service gemini
 
 # Add subreddits to monitor
 reddit-deliver subreddit add ClaudeAI
@@ -345,7 +362,8 @@ crontab -e
 | `REDDIT_CLIENT_ID` | ✅ Yes | - | Reddit API client ID |
 | `REDDIT_CLIENT_SECRET` | ✅ Yes | - | Reddit API client secret |
 | `REDDIT_USER_AGENT` | ✅ Yes | - | Reddit API user agent (format: appname/version) |
-| `DEEPL_API_KEY` | ✅ Yes | - | DeepL translation API key |
+| `DEEPL_API_KEY` | ⚠️ Either | - | DeepL translation API key (if using DeepL) |
+| `GEMINI_API_KEY` | ⚠️ Or | - | Google Gemini API key (if using Gemini) |
 | `DISCORD_WEBHOOK_URL` | ✅ Yes | - | Discord webhook URL for notifications |
 | `SLACK_WEBHOOK_URL` | ❌ No | - | Slack webhook URL (optional) |
 | `MONITOR_INTERVAL` | ❌ No | 300 | Monitoring interval in seconds |
@@ -353,7 +371,24 @@ crontab -e
 | `POST_LIMIT` | ❌ No | 10 | Number of posts to fetch per check |
 | `LOG_LEVEL` | ❌ No | INFO | Logging level (DEBUG, INFO, WARNING, ERROR) |
 
-### Supported Languages (DeepL)
+### Supported Translation Services
+
+reddit-deliver supports two translation providers:
+
+#### DeepL (Default)
+- ✅ **Best quality** translations
+- ✅ Free tier: 500,000 characters/month
+- ✅ 30+ languages supported
+- 💡 Recommended for production use
+
+#### Google Gemini
+- ✅ **Free** with generous limits
+- ✅ Easy setup with Google account
+- ✅ Fast translation with AI
+- ✅ Supports 100+ languages
+- 💡 Great for personal use or testing
+
+### Supported Languages
 
 | Code | Language | Code | Language |
 |------|----------|------|----------|
@@ -364,7 +399,8 @@ crontab -e
 | `pt` | Portuguese | `ru` | Russian |
 | `nl` | Dutch | `pl` | Polish |
 
-[See full list](https://www.deepl.com/docs-api/translate-text/) of supported languages.
+**DeepL**: [See full list](https://www.deepl.com/docs-api/translate-text/)
+**Gemini**: Supports 100+ languages with automatic detection
 
 ---
 
@@ -610,6 +646,7 @@ SOFTWARE.
 
 - **[PRAW](https://praw.readthedocs.io/)** - Python Reddit API Wrapper
 - **[DeepL](https://www.deepl.com/)** - High-quality translation API
+- **[Google Gemini](https://ai.google.dev/)** - AI-powered translation
 - **[SQLAlchemy](https://www.sqlalchemy.org/)** - Python SQL toolkit
 - **[Click](https://click.palletsprojects.com/)** - CLI framework
 - **[Docker](https://www.docker.com/)** - Containerization platform
