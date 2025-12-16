@@ -33,7 +33,13 @@ def init_from_env():
         webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
         if webhook_url and webhook_url != 'https://discord.com/api/webhooks/your_webhook_url':
             existing_webhook = session.query(WebhookConfig).filter_by(type='discord').first()
-            if not existing_webhook:
+            if existing_webhook:
+                # Update existing webhook if URL changed
+                if existing_webhook.webhook_url != webhook_url:
+                    logger.info("Updating Discord webhook URL from environment...")
+                    existing_webhook.webhook_url = webhook_url
+                    logger.info("Discord webhook URL updated")
+            else:
                 logger.info("Creating Discord webhook configuration...")
                 webhook = WebhookConfig(
                     type='discord',
@@ -41,7 +47,7 @@ def init_from_env():
                     enabled=1
                 )
                 session.add(webhook)
-                logger.info(f"Created Discord webhook configuration")
+                logger.info("Created Discord webhook configuration")
 
         # Initialize subreddits from environment
         subreddits_env = os.getenv('SUBREDDITS', '')
